@@ -21,7 +21,7 @@ function createApi(db) {
 
 	    for ( var i in playerList) {
 		playerQueries[i] = {
-		    address : playerList[i]
+		    'players.address' : playerList[i]
 		};
 	    }
 
