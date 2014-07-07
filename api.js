@@ -67,9 +67,12 @@ function createApi(db) {
 	    $push : {
 		players : player
 	    }
+	}, function(err, updated) {
+	    if(err)
+		console.log(err);
+	    else
+		res.status(201).send(player);
 	});
-	
-	res.status(201).send(player);
     };
 
     self.leave = function(req, res) {
