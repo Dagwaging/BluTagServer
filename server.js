@@ -136,6 +136,8 @@ var BluTag = function() {
 	    
 	    // Create the express server and routes.
 	    self.initializeServer();
+	    
+	    self.start();
 	});
     };
 
@@ -171,5 +173,4 @@ var BluTag = function() {
  */
 var zapp = new BluTag();
 zapp.initialize();
-zapp.start();
 
