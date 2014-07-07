@@ -62,7 +62,7 @@ function createApi(db) {
 	};
 
 	self.games.update({
-	    _id : req.params.id
+	    _id : mongo.ObjectID(req.params.id)
 	}, {
 	    $push : {
 		players : player
