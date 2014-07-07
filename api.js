@@ -1,3 +1,5 @@
+var mongodb = require('mongodb');
+
 exports = module.exports = createApi;
 
 function createApi(db) {
