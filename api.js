@@ -77,32 +77,33 @@ function createApi(db) {
 	    }
 	});
 	
-	if(!cursor.hasNext()) {
-	    res.status(404).send();
-	    
-	    return;
-	}
-	
-	var address = cursor.next().players[0].address;
-	
-	var tag = {
-		time : new Date().getTime(),
-		player : address
-	};
-	
-	self.games.update({
-	    _id: mongodb.ObjectID(req.params.id)
-	}, {
-	    $push : {
-		tags : tag
-	    }
-	}, function(err, updated) {
-	    if(err) {
-		console.log(err);
-		res.status(500).send();
+	var address = cursor.nextObject(function(err, item) {
+	    if(item) {
+		var address = item.players[0].address;
+
+		var tag = {
+			time : new Date().getTime(),
+			player : address
+		};
+		
+		self.games.update({
+		    _id: mongodb.ObjectID(req.params.id)
+		}, {
+		    $push : {
+			tags : tag
+		    }
+		}, function(err, updated) {
+		    if(err) {
+			console.log(err);
+			res.status(500).send();
+		    }
+		    else {
+			res.status(201).send(tag);
+		    }
+		});
 	    }
 	    else {
-		res.status(201).send(tag);
+		res.status(404).send();
 	    }
 	});
     };
