@@ -67,7 +67,7 @@ function createApi(db) {
     };
 
     self.tag = function(req, res) {
-	var address = self.games.find({
+	var cursor = self.games.find({
 	    _id: mongodb.ObjectID(req.params.id)
 	}, {
 	    players: {
@@ -75,8 +75,15 @@ function createApi(db) {
 		    authToken: req.header('Authorization')
 		}
 	    }
-	}).players[0].address;
+	});
 	
+	if(!cursor.hasNext()) {
+	    res.status(404).send();
+	    
+	    return;
+	}
+	
+	var address = cursor.next().players[0].address;
 	
 	var tag = {
 		time : new Date().getTime(),
