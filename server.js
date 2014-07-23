@@ -87,8 +87,6 @@ var BluTag = function() {
      * Create the routing table entries + handlers for the application.
      */
     self.createRoutes = function() {
-	self.api = new api(self.db);
-	
         self.app.get('/games', self.api.getGames);
         
         self.app.post('/games', self.api.createGame);
@@ -108,9 +106,11 @@ var BluTag = function() {
      * handlers.
      */
     self.initializeServer = function() {
-        self.app = express.createServer();
+        self.app = express();
+
+	self.api = new api(self.db);
         
-        self.app.use(api.middleware);
+        self.app.use(self.api.middleware);
         self.app.use(express.json());
 
         self.createRoutes();
