@@ -26,11 +26,18 @@
   
   "dependencies": {
     "express": "~3.4.4",
-    "mongodb": "*"
+    "mongodb": "*",
+    "supertest": "^0.13",
+    "should": "^3.3.1",
+    "mocha": "*"
   },
   "devDependencies": {},
   "bundleDependencies": [],
 
   "private": true,
-  "main": "server.js"
+  "main": "server.js",
+  
+  "scripts": {
+      "test": "mocha"
+  }
 }

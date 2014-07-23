@@ -5,6 +5,8 @@ exports = module.exports = createApi;
 function createApi(db) {
     var self = this;
 
+    self.key = 'AIzaSyBLBoExJLSqP0yRLHJNfTLVyKE-GpcERJ8';
+
     self.games = db.collection('games');
 
     self.getGames = function(req, res) {
@@ -28,16 +30,15 @@ function createApi(db) {
 	    cursor = self.games.find({
 		$or : playerQueries
 	    }, {
-		'players.authToken': 0
+		'players.authToken' : 0
 	    });
 	}
 
 	cursor.toArray(function(err, docs) {
-	    if(err) {
+	    if (err) {
 		console.log(err);
 		res.status(500).send();
-	    }
-	    else {
+	    } else {
 		res.status(200).send(docs);
 	    }
 	});
@@ -45,7 +46,7 @@ function createApi(db) {
 
     self.createGame = function(req, res) {
 	var game = {
-		name : req.body.name
+	    name : req.body.name
 	};
 
 	game.tags = [];
@@ -55,9 +56,8 @@ function createApi(db) {
 	    if (err) {
 		console.log(err);
 		res.status(500).send();
-	    }
-	    else {
-		res.status(201).send(game);
+	    } else {
+		res.status(201).set('Content-Type', 'application/json').send(game);
 	    }
 	});
     };
@@ -68,41 +68,39 @@ function createApi(db) {
 
     self.tag = function(req, res) {
 	var cursor = self.games.find({
-	    _id: mongodb.ObjectID(req.params.id)
+	    _id : mongodb.ObjectID(req.params.id)
 	}, {
-	    players: {
-		$elemMatch: {
-		    authToken: req.header('Authorization')
+	    players : {
+		$elemMatch : {
+		    authToken : req.header('Authorization')
 		}
 	    }
 	});
-	
+
 	var address = cursor.nextObject(function(err, item) {
-	    if(item) {
+	    if (item) {
 		var address = item.players[0].address;
 
 		var tag = {
-			time : new Date().getTime(),
-			player : address
+		    time : new Date().getTime(),
+		    player : address
 		};
-		
+
 		self.games.update({
-		    _id: mongodb.ObjectID(req.params.id)
+		    _id : mongodb.ObjectID(req.params.id)
 		}, {
 		    $push : {
 			tags : tag
 		    }
 		}, function(err, updated) {
-		    if(err) {
+		    if (err) {
 			console.log(err);
 			res.status(500).send();
-		    }
-		    else {
+		    } else {
 			res.status(201).send(tag);
 		    }
 		});
-	    }
-	    else {
+	    } else {
 		res.status(404).send();
 	    }
 	});
@@ -115,6 +113,32 @@ function createApi(db) {
 	    authToken : req.header('Authorization')
 	};
 
+	if (!req.body) {
+	    res.status(400).send('Missing request body. See http://docs.blutag.apiary.io/#post-%2Fgames%2F%7Bid%7D%2Fplayers for more information.');
+	    return;
+	}
+
+	if (!player.authToken) {
+	    res.status(401).send('Missing Authorization header. This header should contain the player\'s Google+ auth token.');
+	    return;
+	}
+
+	if (!player.address) {
+	    res
+		    .status(400)
+		    .send(
+			    'Missing address field. This field should contain the bluetooth MAC address of the player\'s device.');
+	    return;
+	}
+
+	if (!player.pushId) {
+	    res
+		    .status(400)
+		    .send(
+			    'Missing pushId field. This field should contain the GCM id of the player\'s device.');
+	    return;
+	}
+
 	self.games.update({
 	    _id : mongodb.ObjectID(req.params.id)
 	}, {
@@ -122,59 +146,65 @@ function createApi(db) {
 		players : player
 	    }
 	}, function(err, updated) {
-	    if(err) {
+	    if (err) {
 		console.log(err);
 		res.status(500).send();
-	    }
-	    else {
+	    } else {
 		res.status(201).send(player);
 	    }
 	});
     };
 
     self.leave = function(req, res) {
+	if(! req.body) {
+	    res.status(400).send('Missing Authorization header. This header should contain the player\'s Google+ auth token.');
+	    return;
+	}
+	
 	self.games.update({
 	    _id : mongodb.ObjectID(req.params.id)
 	}, {
-	    $pull: {
+	    $pull : {
 		players : {
-		    authToken: req.header('Authorization')
+		    authToken : req.header('Authorization')
 		}
 	    }
 	}, function(err, updated) {
-	    if(err) {
+	    if (err) {
 		console.log(err);
 		res.status(500).send();
-	    }
-	    else {
+	    } else {
 		res.status(204).send();
-		
-		if(updated.players.length == 0) {
+
+		if (updated.players.length == 0) {
 		    self.games.remove({
-			_id: mongodb.ObjectID(updated._id)
+			_id : mongodb.ObjectID(updated._id)
 		    });
 		}
 	    }
 	});
     };
-    
+
     self.notify = function(data, list) {
-	var message = {'data' : data, 'registration_ids' : list};
-	
-	var options = {
-                hostname: 'android.googleapis.com',
-		path: '/gcm/send',
-		method: 'POST',
-		headers: {
-		    'Authorization': self.key,
-		    'Content-Type': 'application/json'
-		}
+	var message = {
+	    'data' : data,
+	    'registration_ids' : list
 	};
-	
+
+	var options = {
+	    hostname : 'android.googleapis.com',
+	    path : '/gcm/send',
+	    method : 'POST',
+	    headers : {
+		'Authorization' : self.key,
+		'Content-Type' : 'application/json'
+	    }
+	};
+
 	var request = https.request(options, function(res) {
-	    
+
 	});
-	
+
 	request.end(JSON.stringify(message));
     }
 }
