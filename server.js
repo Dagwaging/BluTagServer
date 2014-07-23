@@ -110,6 +110,7 @@ var BluTag = function() {
     self.initializeServer = function() {
         self.app = express.createServer();
         
+        self.app.use(api.middleware);
         self.app.use(express.json());
 
         self.createRoutes();

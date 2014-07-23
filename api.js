@@ -8,6 +8,11 @@ function createApi(db) {
     self.key = 'AIzaSyBLBoExJLSqP0yRLHJNfTLVyKE-GpcERJ8';
 
     self.games = db.collection('games');
+    
+    self.middleware = function(req, res, next) {
+	res.set('Content-Type', 'application/json');
+	next();
+    };
 
     self.getGames = function(req, res) {
 	var players = req.query.players;
@@ -53,11 +58,13 @@ function createApi(db) {
 	game.players = [];
 
 	self.games.insert(game, function(err, inserted) {
+	    res.set('Content-Type', 'application/json');
+	    
 	    if (err) {
 		console.log(err);
 		res.status(500).send();
 	    } else {
-		res.status(201).set('Content-Type', 'application/json').send(game);
+		res.status(201).send(game);
 	    }
 	});
     };
