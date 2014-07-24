@@ -8,7 +8,7 @@ function createApi(db) {
     self.key = 'AIzaSyBLBoExJLSqP0yRLHJNfTLVyKE-GpcERJ8';
 
     self.games = db.collection('games');
-    
+
     self.middleware = function(req, res, next) {
 	res.set('Content-Type', 'application/json');
 	next();
@@ -68,15 +68,27 @@ function createApi(db) {
     };
 
     self.getGame = function(req, res) {
+	try {
+	    var id = mongodb.ObjectID(req.params.id);
+	} catch (err) {
+	    res.status(404).send('Invalid game id.');
+
+	    return;
+	}
+
 	var cursor = self.games.find({
-	    _id: mongodb.ObjectID(req.params.id)
+	    _id : id
 	});
-	
+
 	cursor.nextObject(function(err, item) {
-	    if(item) {
+	    if (item) {
 		res.status(200).send(item);
 	    } else {
-		res.status(404).send();
+		if (err) {
+		    res.status(500).send(err);
+		} else {
+		    res.status(404).send();
+		}
 	    }
 	})
     };
@@ -129,12 +141,18 @@ function createApi(db) {
 	};
 
 	if (!req.body) {
-	    res.status(400).send('Missing request body. See http://docs.blutag.apiary.io/#post-%2Fgames%2F%7Bid%7D%2Fplayers for more information.');
+	    res
+		    .status(400)
+		    .send(
+			    'Missing request body. See http://docs.blutag.apiary.io/#post-%2Fgames%2F%7Bid%7D%2Fplayers for more information.');
 	    return;
 	}
 
 	if (!player.authToken) {
-	    res.status(401).send('Missing Authorization header. This header should contain the player\'s Google+ auth token.');
+	    res
+		    .status(401)
+		    .send(
+			    'Missing Authorization header. This header should contain the player\'s Google+ auth token.');
 	    return;
 	}
 
@@ -171,11 +189,14 @@ function createApi(db) {
     };
 
     self.leave = function(req, res) {
-	if(! req.body) {
-	    res.status(400).send('Missing Authorization header. This header should contain the player\'s Google+ auth token.');
+	if (!req.body) {
+	    res
+		    .status(400)
+		    .send(
+			    'Missing Authorization header. This header should contain the player\'s Google+ auth token.');
 	    return;
 	}
-	
+
 	self.games.update({
 	    _id : mongodb.ObjectID(req.params.id)
 	}, {
