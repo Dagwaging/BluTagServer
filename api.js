@@ -58,8 +58,6 @@ function createApi(db) {
 	game.players = [];
 
 	self.games.insert(game, function(err, inserted) {
-	    res.set('Content-Type', 'application/json');
-	    
 	    if (err) {
 		console.log(err);
 		res.status(500).send();
@@ -70,7 +68,17 @@ function createApi(db) {
     };
 
     self.getGame = function(req, res) {
-	req.params.id;
+	var cursor = self.games.find({
+	    _id: mongodb.ObjectID(req.params.id)
+	});
+	
+	cursor.nextObject(function(err, item) {
+	    if(item) {
+		res.status(200).send(item);
+	    } else {
+		res.status(404).send();
+	    }
+	})
     };
 
     self.tag = function(req, res) {
