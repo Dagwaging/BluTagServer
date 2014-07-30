@@ -33,7 +33,7 @@ describe('Local integration test', function() {
     before(function(done) {
 	this.timeout(10000);
 
-	mongoProcess = spawn('mongod', [ '--dbpath', 'test' ], {
+	mongoProcess = spawn('mongod', ['--dbpath', 'test/db', '--config', 'test/test.conf'], {
 	    stdio : 'pipe'
 	});
 	
@@ -50,6 +50,12 @@ describe('Local integration test', function() {
 				done(err);
 				return;
 			    }
+			    
+			    db.collection('games').remove(function(err) {
+				if(err) {
+				    done(err);
+				}
+			    });
 
 			    process.env.OPENSHIFT_NODEJS_IP = '127.0.0.1';
 			    process.env.OPENSHIFT_NODEJS_PORT = 8080;
