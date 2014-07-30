@@ -27,9 +27,8 @@ var BluTag = function() {
         self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
         self.port      = process.env.OPENSHIFT_NODEJS_PORT || 8080;
         
-        self.dbhost    = process.env.OPENSHIFT_MONGODB_DB_HOST;
-        self.dbport    = process.env.OPENSHIFT_MONGODB_DB_PORT || 27017;
-
+        self.dburl     = process.env.OPENSHIFT_MONGODB_DB_URL; 
+        
         if (typeof self.ipaddress === "undefined") {
             // Log errors on OpenShift but continue w/ 127.0.0.1 - this
             // allows us to run/test the app locally.
@@ -37,11 +36,11 @@ var BluTag = function() {
             self.ipaddress = "127.0.0.1";
         };
         
-        if (typeof self.dbhost === 'undefined') {
+        if (typeof self.dburl === 'undefined') {
             // Log errors on OpenShift but continue w/ 127.0.0.1 - this
             // allows us to run/test the app locally.
-            console.warn('No OPENSHIFT_MONGODB_DB_HOST var, using 127.0.0.1');
-            self.dbhost = "127.0.0.1";
+            console.warn('No OPENSHIFT_MONGODB_DB_URL var, using mongodb://127.0.0.1:27017');
+            self.dburl = "mongodb://127.0.0.1:27017";
         }
     };
 
@@ -121,7 +120,7 @@ var BluTag = function() {
      * Initialize the database (mongodb) and connect to it
      */
     self.initializeDb = function() {
-	mongodb.MongoClient.connect('mongodb://admin:pnnMptqKNB6k@' + self.dbhost + ':' + self.dbport + '/blutag', function(err, db) {
+	mongodb.MongoClient.connect(self.dburl, function(err, db) {
 	    if(err) {
 		console.log(err);
 		
