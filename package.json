@@ -26,7 +26,8 @@
   
   "dependencies": {
     "express": "~3.4.4",
-    "mongodb": "*"
+    "mongodb": "*",
+    "JSONStream": "^0.8.4"
   },
   "devDependencies": {
     "supertest": "^0.13",

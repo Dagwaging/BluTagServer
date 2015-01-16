@@ -39,8 +39,8 @@ var BluTag = function() {
         if (typeof self.dburl === 'undefined') {
             // Log errors on OpenShift but continue w/ 127.0.0.1 - this
             // allows us to run/test the app locally.
-            console.warn('No OPENSHIFT_MONGODB_DB_URL var, using mongodb://127.0.0.1:27017');
-            self.dburl = "mongodb://127.0.0.1:27017";
+            console.warn('No OPENSHIFT_MONGODB_DB_URL var, using mongodb://127.0.0.1:27017/');
+            self.dburl = "mongodb://127.0.0.1:27017/";
         }
     };
 
@@ -96,7 +96,7 @@ var BluTag = function() {
         
         self.app.post('/games/:id/players', self.api.join);
         
-        self.app.delete('/games/:id/players', self.api.leave);
+        self.app['delete']('/games/:id/players', self.api.leave);
     };
 
 
@@ -120,7 +120,7 @@ var BluTag = function() {
      * Initialize the database (mongodb) and connect to it
      */
     self.initializeDb = function() {
-	mongodb.MongoClient.connect(self.dburl, function(err, db) {
+	mongodb.MongoClient.connect(self.dburl + 'blutag', function(err, db) {
 	    if(err) {
 		console.log(err);
 		
@@ -152,16 +152,15 @@ var BluTag = function() {
         self.initializeDb();
     };
 
-
     /**
      * Start the server (starts up the application).
      */
     self.start = function() {
         // Start the app on the specific interface (and port).
-        self.app.listen(self.port, self.ipaddress, function() {
-            console.log('%s: Node server started on %s:%d ...',
-                        Date(Date.now() ), self.ipaddress, self.port);
-        });
+	    self.app.listen(self.port, self.ipaddress, function() {
+		console.log('%s: Node server started on %s:%d ...',
+			Date(Date.now() ), self.ipaddress, self.port);
+	    });
     };
 
 };   /* BluTag */

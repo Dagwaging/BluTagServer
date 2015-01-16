@@ -1,6 +1,7 @@
 var mongodb = require('mongodb');
 var https = require('https');
 var querystring = require('querystring');
+var JSONStream = require('JSONStream');
 var url = require('url');
 
 exports = module.exports = createApi;
@@ -20,10 +21,18 @@ function createApi(db) {
     self.getGames = function(req, res) {
 	var players = req.query.players;
 
-	var cursor;
-
 	if (typeof players === 'undefined') {
-	    cursor = self.games.find({});
+	    self.games.find({}, {
+		'players.pushId' : 0,
+		'players.authToken' : 0
+	    }, function(err, result) {
+		if (err) {
+		    console.log(err);
+		    res.status(500).send();
+		} else {
+		    result.stream().pipe(JSONStream.stringify()).pipe(res);
+		}
+	    });
 	} else {
 	    var playerList = players.split(',');
 
@@ -35,21 +44,20 @@ function createApi(db) {
 		};
 	    }
 
-	    cursor = self.games.find({
+	    self.games.find({
 		$or : playerQueries
 	    }, {
+		'players.pushId' : 0,
 		'players.authToken' : 0
+	    }, function(err, result) {
+		if (err) {
+		    console.log(err);
+		    res.status(500).send();
+		} else {
+		    result.stream().pipe(JSONStream.stringify()).pipe(res);
+		}
 	    });
 	}
-
-	cursor.toArray(function(err, docs) {
-	    if (err) {
-		console.log(err);
-		res.status(500).send();
-	    } else {
-		res.status(200).send(docs);
-	    }
-	});
     };
 
     self.createGame = function(req, res) {
@@ -79,13 +87,14 @@ function createApi(db) {
 	    return;
 	}
 
-	var cursor = self.games.find({
+	self.games.findOne({
 	    _id : id
-	});
-
-	cursor.nextObject(function(err, item) {
-	    if (item) {
-		res.status(200).send(item);
+	}, {
+	    'players.pushId' : 0,
+	    'players.authToken' : 0
+	}, function(err, result) {
+	    if (result) {
+		res.status(200).send(result);
 	    } else {
 		if (err) {
 		    res.status(500).send(err);
@@ -94,7 +103,7 @@ function createApi(db) {
 			    'Game ' + req.params.id + ' does not exist.');
 		}
 	    }
-	})
+	});
     };
 
     self.tag = function(req, res) {
@@ -179,36 +188,43 @@ function createApi(db) {
 	    return;
 	}
 
-	self.getUser(player.authToken, function(err, person) {
-	    if (err) {
-		res.status(500).send();
-	    } else {
-		if (person) {
-		    player.givenName = person.name.givenName;
-		    player.familyName = person.name.familyName;
+	self.getUser(player.authToken, function(authRes, person) {
+	    if (person) {
+		if (!person.name || !person.image) {
+		    res.status(authRes.statusCode).send(person);
 
-		    var image = url.parse(person.image.url, false);
-		    image.query = null;
-
-		    player.image = url.format(image);
-
-		    self.games.update({
-			_id : mongodb.ObjectID(req.params.id)
-		    }, {
-			$push : {
-			    players : player
-			}
-		    }, function(err, updated) {
-			if (err) {
-			    console.log(err);
-			    res.status(500).send();
-			} else {
-			    res.status(201).send(player);
-			}
-		    });
-		} else {
-		    res.status(500).send();
+		    return;
 		}
+
+		player.givenName = person.name.givenName;
+		player.familyName = person.name.familyName;
+
+		var image = url.parse(person.image.url, false);
+		image.query = null;
+		image.search = null;
+
+		player.image = url.format(image);
+
+		self.games.update({
+		    _id : mongodb.ObjectID(req.params.id)
+		}, {
+		    $push : {
+			players : player
+		    }
+		}, function(err, updated) {
+		    if (err) {
+			console.log(err);
+			res.status(500).send(
+				'Error writing player to database.');
+		    } else {
+			delete player.pushId;
+			delete player.authToken;
+
+			res.status(201).send(player);
+		    }
+		});
+	    } else {
+		res.status(500).send('Unable to authorize to Google+.');
 	    }
 	});
     };
@@ -229,12 +245,10 @@ function createApi(db) {
 				body += chunk;
 			    }).on('end', function() {
 				if (body.length == 0) {
-				    callback(null, null);
+				    callback(res, null);
 				} else {
-				    callback(null, JSON.parse(body));
+				    callback(res, JSON.parse(body));
 				}
-			    }).on('error', function(err) {
-				callback(err, null);
 			    });
 			});
     };
@@ -248,7 +262,7 @@ function createApi(db) {
 	    return;
 	}
 
-	self.games.update({
+	self.games.findAndModify({
 	    _id : mongodb.ObjectID(req.params.id)
 	}, {
 	    $pull : {
@@ -256,7 +270,7 @@ function createApi(db) {
 		    authToken : req.header('Authorization')
 		}
 	    }
-	}, function(err, updated) {
+	}, {'new': true}, function(err, updated) {
 	    if (err) {
 		console.log(err);
 		res.status(500).send();
@@ -266,6 +280,8 @@ function createApi(db) {
 		if (updated.players.length == 0) {
 		    self.games.remove({
 			_id : mongodb.ObjectID(updated._id)
+		    }, function(err, num) {
+			
 		    });
 		}
 	    }
