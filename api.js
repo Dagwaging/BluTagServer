@@ -264,7 +264,7 @@ function createApi(db) {
 
 	self.games.findAndModify({
 	    _id : mongodb.ObjectID(req.params.id)
-	}, {
+	}, {}, {
 	    $pull : {
 		players : {
 		    authToken : req.header('Authorization')
