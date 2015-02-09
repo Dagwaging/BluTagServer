@@ -62,9 +62,10 @@ describe('Local integration test', function () {
 				function (err, res) {
 					res.body.should.have.property('_id');
 					res.body.should.have.property('name', 'Test Game');
+					res.body.should.have.property('playerCount', 0)
 					res.body.should.have.property('tags', []);
 					res.body.should.have.property('players', []);
-					res.body.should.have.keys('_id', 'name', 'tags', 'players');
+					res.body.should.have.keys('_id', 'name', 'playerCount', 'tags', 'players');
 
 					createdGame = res.body;
 
@@ -142,7 +143,8 @@ describe('Local integration test', function () {
 						res.body.should.have.property('givenName', 'Zane');
 						res.body.should.have.property('familyName', 'Geiger');
 						res.body.should.have.property('image');
-						res.body.should.have.keys('address', 'givenName', 'familyName', 'image');
+						res.body.should.have.property('left', false);
+						res.body.should.have.keys('address', 'givenName', 'familyName', 'image', 'left');
 
 						createdPlayer = res.body;
 
@@ -175,12 +177,14 @@ describe('Local integration test', function () {
 					var expectedGame = {
 						_id: createdGame._id,
 						name: createdGame.name,
+						playerCount: 1,
 						tags: [],
 						players: [{
 							address: 'fakemacaddress',
 							givenName: 'Zane',
 							familyName: 'Geiger',
-							image: createdPlayer.image
+							image: createdPlayer.image,
+							left: false
 						}]
 					};
 
@@ -199,12 +203,14 @@ describe('Local integration test', function () {
 					var expectedGames = [{
 						_id: createdGame._id,
 						name: createdGame.name,
+						playerCount: 1,
 						tags: [],
 						players: [{
 							address: 'fakemacaddress',
 							givenName: 'Zane',
 							familyName: 'Geiger',
-							image: createdPlayer.image
+							image: createdPlayer.image,
+							left: false
 						}]
 					}];
 

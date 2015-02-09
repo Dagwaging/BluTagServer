@@ -14,6 +14,14 @@ function createApi(db) {
     self.games = db.collection('games');
 
     self.middleware = function(req, res, next) {
+	if (typeof(req.header['Content-Type']) === "undefined") {
+		req.header['Content-Type'] = 'application/json';
+	}
+	else if (req.header['Content-Type'] != 'application/json') {
+		res.status(415).send('Bad Content-Type ' + req.header['Content-Type']);
+		return;
+	}
+
 	res.set('Content-Type', 'application/json');
 	next();
     };
@@ -62,7 +70,8 @@ function createApi(db) {
 
     self.createGame = function(req, res) {
 	var game = {
-	    name : req.body.name
+	    name : req.body.name,
+	    playerCount : 0
 	};
 
 	game.tags = [];
@@ -161,7 +170,8 @@ function createApi(db) {
 	    authToken : req.header('Authorization'),
 	    familyName : '',
 	    givenName : '',
-	    image : ''
+	    image : '',
+	    left: false
 	};
 
 	if (!player.authToken) {
@@ -210,6 +220,9 @@ function createApi(db) {
 		}, {
 		    $push : {
 			players : player
+		    },
+		    $inc : {
+			playerCount : 1
 		    }
 		}, function(err, updated) {
 		    if (err) {
@@ -263,12 +276,14 @@ function createApi(db) {
 	}
 
 	self.games.findAndModify({
-	    _id : mongodb.ObjectID(req.params.id)
+	    _id : mongodb.ObjectID(req.params.id),
+	    'players.authToken': req.header('Authorization')
 	}, {}, {
-	    $pull : {
-		players : {
-		    authToken : req.header('Authorization')
-		}
+	    $set : {
+		'players.$.left' : true
+	    },
+	    $inc : {
+		playerCount : -1
 	    }
 	}, {'new': true}, function(err, updated) {
 	    if (err) {
@@ -277,7 +292,7 @@ function createApi(db) {
 	    } else {
 		res.status(204).send();
 
-		if (updated.players.length == 0) {
+		if (updated.tags.length > 0 && updated.playerCount <= 2) {
 		    self.games.remove({
 			_id : mongodb.ObjectID(updated._id)
 		    }, function(err, num) {

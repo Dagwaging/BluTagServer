@@ -109,8 +109,8 @@ var BluTag = function() {
 
 	self.api = new api(self.db);
         
-        self.app.use(self.api.middleware);
         self.app.use(express.json());
+        self.app.use(self.api.middleware);
 
         self.createRoutes();
     };
