@@ -147,6 +147,8 @@ function createApi(db) {
 			res.status(500).send();
 		    } else {
 			res.status(201).send(tag);
+
+			self.notifyAll({"tag": tag}, updated);
 		    }
 		});
 	    } else {
@@ -234,6 +236,8 @@ function createApi(db) {
 			delete player.authToken;
 
 			res.status(201).send(player);
+
+			self.notifyAll({"game": updated}, updated);
 		    }
 		});
 	    } else {
@@ -292,6 +296,8 @@ function createApi(db) {
 	    } else {
 		res.status(204).send();
 
+		self.notifyAll({"game": updated}, updated);
+
 		if (updated.tags.length > 0 && updated.playerCount <= 2) {
 		    self.games.remove({
 			_id : mongodb.ObjectID(updated._id)
@@ -301,6 +307,16 @@ function createApi(db) {
 		}
 	    }
 	});
+    };
+
+    self.notifyAll = function(data, game) {
+	var ids = [];
+
+	for(var player in game.players) {
+		ids.push(player.pushId);
+	}
+
+	self.notify(data, ids);
     };
 
     self.notify = function(data, list) {
