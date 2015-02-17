@@ -135,13 +135,13 @@ function createApi(db) {
 		    player : address
 		};
 
-		self.games.update({
+		self.games.findAndModify({
 		    _id : mongodb.ObjectID(req.params.id)
-		}, {
+		}, {}, {
 		    $push : {
 			tags : tag
 		    }
-		}, function(err, updated) {
+		}, {'new': true}, function(err, updated) {
 		    if (err) {
 			console.log(err);
 			res.status(500).send();
@@ -217,16 +217,16 @@ function createApi(db) {
 
 		player.image = url.format(image);
 
-		self.games.update({
+		self.games.findAndModify({
 		    _id : mongodb.ObjectID(req.params.id)
-		}, {
+		}, {}, {
 		    $push : {
 			players : player
 		    },
 		    $inc : {
 			playerCount : 1
 		    }
-		}, function(err, updated) {
+		}, {'new': true}, function(err, updated) {
 		    if (err) {
 			console.log(err);
 			res.status(500).send(
@@ -312,7 +312,9 @@ function createApi(db) {
     self.notifyAll = function(data, game) {
 	var ids = [];
 
-	for(var player in game.players) {
+	for(var i in game.players) {
+		var player = game.players[i];
+
 		if(!player.left) {
 			ids.push(player.pushId);
 		}
@@ -344,7 +346,5 @@ function createApi(db) {
 	});
 
 	request.end(JSON.stringify(message));
-
-	console.log(JSON.stringify(message));
     }
 }
