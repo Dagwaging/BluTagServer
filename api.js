@@ -318,7 +318,9 @@ function createApi(db) {
 		}
 	}
 
-	self.notify(data, ids);
+	if(ids.length > 0) {
+		self.notify(data, ids);
+	}
     };
 
     self.notify = function(data, list) {
@@ -338,9 +340,11 @@ function createApi(db) {
 	};
 
 	var request = https.request(options, function(res) {
-
+		res.pipe(process.stdout);
 	});
 
 	request.end(JSON.stringify(message));
+
+	console.log(JSON.stringify(message));
     }
 }
