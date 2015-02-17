@@ -345,6 +345,8 @@ function createApi(db) {
 		res.pipe(process.stdout);
 	});
 
+	console.log(JSON.stringify(message));
+
 	request.end(JSON.stringify(message));
     }
 }
