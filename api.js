@@ -332,7 +332,7 @@ function createApi(db) {
 	    path : '/gcm/send',
 	    method : 'POST',
 	    headers : {
-		'Authorization' : self.key,
+		'Authorization' : 'key=' + self.key,
 		'Content-Type' : 'application/json'
 	    }
 	};
