@@ -313,7 +313,9 @@ function createApi(db) {
 	var ids = [];
 
 	for(var player in game.players) {
-		ids.push(player.pushId);
+		if(!player.left) {
+			ids.push(player.pushId);
+		}
 	}
 
 	self.notify(data, ids);
