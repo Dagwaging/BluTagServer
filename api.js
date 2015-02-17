@@ -298,7 +298,7 @@ function createApi(db) {
 
 		self.notifyAll({"game": updated}, updated);
 
-		if (updated.tags.length > 0 && updated.playerCount <= 2) {
+		if ((updated.tags.length > 0 && updated.playerCount <= 2) || (updated.tags.length == 0 && updated.playerCount == 0)) {
 		    self.games.remove({
 			_id : mongodb.ObjectID(updated._id)
 		    }, function(err, num) {
