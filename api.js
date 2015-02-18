@@ -276,6 +276,11 @@ function createApi(db) {
 		    $push : {
 			players : player
 		    },
+		    $pull : {
+			players : {
+				address : player.address
+			}
+		    },
 		    $inc : {
 			playerCount : 1
 		    }
