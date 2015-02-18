@@ -237,7 +237,7 @@ function createApi(db) {
 
 			res.status(201).send(player);
 
-			self.notifyAll({"joined": player.address}, updated);
+			self.notifyAll({"joined": player}, updated);
 		    }
 		});
 	    } else {
@@ -308,7 +308,7 @@ function createApi(db) {
 			var player = game.players[0];
 
 			if(player) {
-				self.notifyAll({"left": player.address}, updated);
+				self.notifyAll({"left": player}, updated);
 			}
 		});
 
