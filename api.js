@@ -48,8 +48,12 @@ function createApi(db) {
 
 	    for ( var i in playerList) {
 		playerQueries[i] = {
-		    'players.address' : playerList[i],
-		    'players.left': false
+			players: {
+				$elemMatch: {
+					address: playerList[i],
+					left: false
+				}
+			}
 		};
 	    }
 
