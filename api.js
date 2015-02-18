@@ -48,7 +48,8 @@ function createApi(db) {
 
 	    for ( var i in playerList) {
 		playerQueries[i] = {
-		    'players.address' : playerList[i]
+		    'players.address' : playerList[i],
+		    'players.left': false
 		};
 	    }
 
