@@ -157,6 +157,54 @@ function createApi(db) {
 	});
     };
 
+    self.start = function(req, res) {
+	self.games.findOne({
+		_id : mongodb.ObjectID(req.params.id)
+	}, {}, function(err, game) {
+		if(game.tags.length > 0) {
+			res.status(400).send("Game is already started");
+
+			return;
+		}
+
+		var index = Math.floor(Math.random() * game.playerCount);
+		var j = 0;
+		var it;
+
+		for(var i in game.players) {
+			if(j == index) {
+				it = game.players[i];
+				break;
+			}
+			if(!game.players[i].left) {
+				j++;
+			}
+		}
+
+		var tag = {
+			time : new Date().getTime(),
+			player : it.address
+		};
+		
+		self.games.findAndModify({
+		    _id : mongodb.ObjectID(req.params.id)
+		}, {}, {
+		    $push : {
+			tags : tag
+		    }
+		}, {'new': true}, function(err, updated) {
+		    if (err) {
+			console.log(err);
+			res.status(500).send();
+		    } else {
+			res.status(201).send(tag);
+
+			self.notifyAll({"tag": tag}, updated);
+		    }
+		});
+	});
+    };
+
     self.join = function(req, res) {
 	if (!req.body) {
 	    res

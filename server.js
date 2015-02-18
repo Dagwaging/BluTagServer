@@ -97,6 +97,8 @@ var BluTag = function() {
         self.app.post('/games/:id/players', self.api.join);
         
         self.app['delete']('/games/:id/players', self.api.leave);
+
+	self.app.post('/games/:id/start', self.api.start);
     };
 
 
