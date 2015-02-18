@@ -273,16 +273,10 @@ function createApi(db) {
 		self.games.findAndModify({
 		    _id : mongodb.ObjectID(req.params.id)
 		}, {}, {
-		    $push : {
-			players : player
-		    },
 		    $pull : {
 			players : {
 				address : player.address
 			}
-		    },
-		    $inc : {
-			playerCount : 1
 		    }
 		}, {'new': true}, function(err, updated) {
 		    if (err) {
@@ -290,12 +284,29 @@ function createApi(db) {
 			res.status(500).send(
 				'Error writing player to database.');
 		    } else {
-			delete player.pushId;
-			delete player.authToken;
+			self.games.findAndModify({
+				_id : mongodb.ObjectID(req.params.id)
+			}, {}, {
+				$push : {
+					players : player
+				},
+				$inc : {
+					playerCount : 1
+				}
+			}, {'new': true}, function(err, updated) {
+				if (err) {
+					console.log(err);
+					res.status(500).send(
+						'Error writing player to database.');
+				} else {
+					delete player.pushId;
+					delete player.authToken;
 
-			res.status(201).send(player);
+					res.status(201).send(player);
 
-			self.notifyAll({"joined": player}, updated);
+					self.notifyAll({"joined": player}, updated);
+				}
+			}
 		    }
 		});
 	    } else {
