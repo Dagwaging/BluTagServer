@@ -306,7 +306,7 @@ function createApi(db) {
 
 					self.notifyAll({"joined": player}, updated);
 				}
-			}
+			});
 		    }
 		});
 	    } else {
