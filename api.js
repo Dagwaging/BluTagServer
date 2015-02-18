@@ -237,7 +237,7 @@ function createApi(db) {
 
 			res.status(201).send(player);
 
-			self.notifyAll({"game": updated}, updated);
+			self.notifyAll({"joined": player.address}, updated);
 		    }
 		});
 	    } else {
@@ -296,7 +296,21 @@ function createApi(db) {
 	    } else {
 		res.status(204).send();
 
-		self.notifyAll({"game": updated}, updated);
+		self.games.findOne({
+			_id : mongodb.ObjectID(req.params.id)
+		}, {
+			players: {
+				$elemMatch: {
+					authToken: req.header("Authorization")
+				}
+			}
+		}, {}, function(err, game) {
+			var player = game.players[0];
+
+			if(player) {
+				self.notifyAll({"left": player.address}, updated);
+			}
+		});
 
 		if ((updated.tags.length > 0 && updated.playerCount <= 2) || (updated.tags.length == 0 && updated.playerCount == 0)) {
 		    self.games.remove({
@@ -344,8 +358,6 @@ function createApi(db) {
 	var request = https.request(options, function(res) {
 		res.pipe(process.stdout);
 	});
-
-	console.log(JSON.stringify(message));
 
 	request.end(JSON.stringify(message));
     }
