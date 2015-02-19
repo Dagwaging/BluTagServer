@@ -365,16 +365,22 @@ function createApi(db) {
 			var player = game.players[0];
 
 			if(player) {
-				self.notifyAll({"left": player}, updated);
+				self.notifyAll({"left": player}, updated, function(err) {
+					if(err) {
+						console.log(err);
+						return;
+					}
+
+					if ((updated.tags.length > 0 && updated.playerCount <= 2) || (updated.tags.length == 0 && updated.playerCount == 0)) {
+						self.games.remove({
+							_id : mongodb.ObjectID(updated._id)
+						}, function(err, num) {
+
+						});
+					}
+				});
 			}
 
-			if ((updated.tags.length > 0 && updated.playerCount <= 2) || (updated.tags.length == 0 && updated.playerCount == 0)) {
-			    self.games.remove({
-				_id : mongodb.ObjectID(updated._id)
-			    }, function(err, num) {
-				
-			    });
-			}
 		});
 	});
     };
@@ -398,7 +404,7 @@ function createApi(db) {
 	});
     };
 
-    self.notifyAll = function(data, game) {
+    self.notifyAll = function(data, game, callback) {
 	var ids = [];
 	var players = [];
 
@@ -412,11 +418,11 @@ function createApi(db) {
 	}
 
 	if(ids.length > 0) {
-		self.notify(data, ids, game, players);
+		self.notify(data, ids, game, players, callback);
 	}
     };
 
-    self.notify = function(data, list, game, players) {
+    self.notify = function(data, list, game, players, callback) {
 	var message = {
 	    'data' : data,
 	    'registration_ids' : list
@@ -454,13 +460,12 @@ function createApi(db) {
 					var result = message.results[i];
 
 					if(result.error) {
-						leave(game._id, players[i].authToken, function(err) {
-							if(err) {
-								console.log(err);
-							}
-						});
+						leave(game._id, players[i].authToken, callback);
 					}
 				}
+			}
+			else {
+				callback();
 			}
 		});
 	});
