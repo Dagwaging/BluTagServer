@@ -367,15 +367,15 @@ function createApi(db) {
 			if(player) {
 				self.notifyAll({"left": player}, updated);
 			}
-		});
 
-		if ((updated.tags.length > 0 && updated.playerCount <= 2) || (updated.tags.length == 0 && updated.playerCount == 0)) {
-		    self.games.remove({
-			_id : mongodb.ObjectID(updated._id)
-		    }, function(err, num) {
-			
-		    });
-		}
+			if ((updated.tags.length > 0 && updated.playerCount <= 2) || (updated.tags.length == 0 && updated.playerCount == 0)) {
+			    self.games.remove({
+				_id : mongodb.ObjectID(updated._id)
+			    }, function(err, num) {
+				
+			    });
+			}
+		});
 	});
     };
 
