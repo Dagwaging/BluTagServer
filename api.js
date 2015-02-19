@@ -445,7 +445,6 @@ function createApi(db) {
 		var data = '';
 		
 		if(res.statusCode != 200) {
-			res.pipe(process.stdout);
 			return;
 		}
 
@@ -454,6 +453,8 @@ function createApi(db) {
 		res.on('data', function(chunk) {
 			data += chunk;
 		}).on('end', function() {
+			console.log(data);
+
 			var message = JSON.parse(data);
 
 			if(message.failure > 0) {
