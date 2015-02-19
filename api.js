@@ -339,18 +339,10 @@ function createApi(db) {
 			});
     };
 
-    self.leave = function(req, res) {
-	if (!req.body) {
-	    res
-		    .status(400)
-		    .send(
-			    'Missing Authorization header. This header should contain the player\'s Google+ auth token.');
-	    return;
-	}
-
+    var leave = function(game, player, callback) {
 	self.games.findAndModify({
-	    _id : mongodb.ObjectID(req.params.id),
-	    'players.authToken': req.header('Authorization')
+	    _id : mongodb.ObjectID(game),
+	    'players.authToken': player
 	}, {}, {
 	    $set : {
 		'players.$.left' : true
@@ -359,18 +351,14 @@ function createApi(db) {
 		playerCount : -1
 	    }
 	}, {'new': true}, function(err, updated) {
-	    if (err) {
-		console.log(err);
-		res.status(500).send();
-	    } else {
-		res.status(204).send();
+		callback(err);
 
 		self.games.findOne({
-			_id : mongodb.ObjectID(req.params.id)
+			_id : mongodb.ObjectID(game)
 		}, {
 			players: {
 				$elemMatch: {
-					authToken: req.header("Authorization")
+					authToken: player
 				}
 			}
 		}, {}, function(err, game) {
@@ -388,27 +376,47 @@ function createApi(db) {
 			
 		    });
 		}
-	    }
+	});
+    };
+
+    self.leave = function(req, res) {
+	if (!req.body) {
+	    res
+		    .status(400)
+		    .send(
+			    'Missing Authorization header. This header should contain the player\'s Google+ auth token.');
+	    return;
+	}
+
+	leave(req.params.id, req.header('Authorization'), function(err) {
+		if(err) {
+			console.log(err);
+			res.send(500).send();
+		} else {
+			res.send(204).send();
+		}
 	});
     };
 
     self.notifyAll = function(data, game) {
 	var ids = [];
+	var players = [];
 
 	for(var i in game.players) {
 		var player = game.players[i];
 
 		if(!player.left) {
 			ids.push(player.pushId);
+			players.push(player);
 		}
 	}
 
 	if(ids.length > 0) {
-		self.notify(data, ids);
+		self.notify(data, ids, game, players);
 	}
     };
 
-    self.notify = function(data, list) {
+    self.notify = function(data, list, game, players) {
 	var message = {
 	    'data' : data,
 	    'registration_ids' : list
@@ -425,7 +433,34 @@ function createApi(db) {
 	};
 
 	var request = https.request(options, function(res) {
-		res.pipe(process.stdout);
+		var data = '';
+		
+		if(res.statusCode != 200) {
+			res.pipe(process.stdout);
+			return;
+		}
+
+		res.setEncoding('utf8');
+
+		res.on('data', function(chunk) {
+			data += chunk;
+		}).on('end', function() {
+			var message = JSON.parse(data);
+
+			if(message.failure > 0) {
+				for(var i in message.results) {
+					var result = message.results[i];
+
+					if(result.error) {
+						leave(game._id, players[i].authToken, function(err) {
+							if(err) {
+								console.log(err);
+							}
+						});
+					}
+				}
+			}
+		});
 	});
 
 	request.end(JSON.stringify(message));
