@@ -422,6 +422,8 @@ function createApi(db) {
 	    'registration_ids' : list
 	};
 
+	console.log(JSON.stringify(message));
+
 	var options = {
 	    hostname : 'android.googleapis.com',
 	    path : '/gcm/send',
