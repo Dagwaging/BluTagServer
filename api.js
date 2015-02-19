@@ -351,7 +351,8 @@ function createApi(db) {
 		playerCount : -1
 	    }
 	}, {'new': true}, function(err, updated) {
-		callback(err);
+		if(callback)
+			callback(err);
 
 		self.games.findOne({
 			_id : mongodb.ObjectID(game)
