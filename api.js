@@ -402,7 +402,7 @@ function createApi(db) {
 					}
 
 					if ((updated.tags.length > 0 && updated.playerCount <= 2) || (updated.tags.length == 0 && updated.playerCount == 0)) {
-						deleteGame(game._id, callback(err) {
+						deleteGame(game._id, function(err) {
 							if(err) {
 								console.log(err);
 							}
