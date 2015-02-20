@@ -428,9 +428,9 @@ function createApi(db) {
 	leave(req.params.id, req.header('Authorization'), function(err) {
 		if(err) {
 			console.log(err);
-			res.send(500).send();
+			res.status(500).send();
 		} else {
-			res.send(204).send();
+			res.status(204).send();
 		}
 	});
     };
