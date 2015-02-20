@@ -130,7 +130,7 @@ function createApi(db) {
 		    else {
 			    self.notifyAll({"deleted": true}, result, function(err) {
 				    self.games.remove({
-					    _id: mongodb.ObjectID(req.params.id)
+					    _id: mongodb.ObjectID(game)
 				    }, function(err, deleted) {
 					    callback(err);
 				    });
