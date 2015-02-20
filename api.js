@@ -496,7 +496,7 @@ function createApi(db) {
 					}
 				}
 			}
-			else {
+			else if(callback) {
 				callback();
 			}
 		});
