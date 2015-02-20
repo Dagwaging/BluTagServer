@@ -136,7 +136,7 @@ function createApi(db) {
 				});
 			});
 		}
-    };
+    });
 
     self.deleteGame = function(req, res) {
 	    deleteGame(req.params.id, function(err) {
