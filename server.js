@@ -91,6 +91,8 @@ var BluTag = function() {
         self.app.post('/games', self.api.createGame);
         
         self.app.get('/games/:id', self.api.getGame);
+
+        self.app['delete']('/games/:id', self.api.deleteGame);
         
         self.app.post('/games/:id/tags', self.api.tag);
         

@@ -120,6 +120,35 @@ function createApi(db) {
 	});
     };
 
+    var deleteGame = function(game, callback) {
+	self.games.findOne({
+	    _id : mongodb.ObjectID(game)
+	}, {}, function(err, result) {
+		if(err) {
+			console.log(err);
+		}
+		else {
+			self.notifyAll({"deleted": true}, result, function(err) {
+				self.games.remove({
+					_id: mongodb.ObjectID(req.params.id)
+				}, function(err, deleted) {
+					callback(err);
+				});
+			});
+		}
+    };
+
+    self.deleteGame = function(req, res) {
+	    deleteGame(req.params.id, function(err) {
+		    if (err) {
+			    console.log(err);
+			    res.status(500).send();
+		    } else {
+			    res.status(204).send();
+		    }
+	    });
+    };
+
     self.tag = function(req, res) {
 	var cursor = self.games.find({
 	    _id : mongodb.ObjectID(req.params.id)
@@ -373,10 +402,10 @@ function createApi(db) {
 					}
 
 					if ((updated.tags.length > 0 && updated.playerCount <= 2) || (updated.tags.length == 0 && updated.playerCount == 0)) {
-						self.games.remove({
-							_id : mongodb.ObjectID(updated._id)
-						}, function(err, num) {
-
+						deleteGame(game._id, callback(err) {
+							if(err) {
+								console.log(err);
+							}
 						});
 					}
 				});
