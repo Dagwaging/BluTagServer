@@ -121,22 +121,23 @@ function createApi(db) {
     };
 
     var deleteGame = function(game, callback) {
-	self.games.findOne({
-	    _id : mongodb.ObjectID(game)
-	}, {}, function(err, result) {
-		if(err) {
-			console.log(err);
-		}
-		else {
-			self.notifyAll({"deleted": true}, result, function(err) {
-				self.games.remove({
-					_id: mongodb.ObjectID(req.params.id)
-				}, function(err, deleted) {
-					callback(err);
-				});
-			});
-		}
-    });
+	    self.games.findOne({
+		    _id : mongodb.ObjectID(game)
+	    }, {}, function(err, result) {
+		    if(err) {
+			    console.log(err);
+		    }
+		    else {
+			    self.notifyAll({"deleted": true}, result, function(err) {
+				    self.games.remove({
+					    _id: mongodb.ObjectID(req.params.id)
+				    }, function(err, deleted) {
+					    callback(err);
+				    });
+			    });
+		    }
+	    });
+    };
 
     self.deleteGame = function(req, res) {
 	    deleteGame(req.params.id, function(err) {
